@@ -1,0 +1,98 @@
+---
+title: "Reference Points from Stock Smart database"
+format: html
+editor: visual
+---
+
+## Stock Smart
+
+The NMFS Species Information System is the database where NMFS stock assessment data and metatdata are archived at the national scale. Publicly accessible data is available at: https://apps-st.fisheries.noaa.gov/stocksmart?app=download-data
+
+I pulled down all the years (2005-2022) for the PFMC "Juristdiction", which is the data in "Assessment_Summary_Data_PFMC.xlsx". The .csv version is just a flattened version of the first page of the Excel Workbook.
+
+```{r, echo=FALSE, warning=F, message=F}
+library(tidyverse)
+library(here)
+
+```
+
+## Explore the data
+
+I filtered the data to just the Groundfish FMP, and did some data wrangling to get the units of biomass to be comparable across the time series, where possible, and filtered to stocks that have at least 5 asssessments over the 17 year period.
+
+There are 8 stocks that have that level of monitoring.
+
+```{r}
+ref <- read.csv('data/Assessment_Summary_data_PFMC.csv', header=T)
+
+ref2 <- ref %>% 
+  filter(FMP == "Pacific Coast Groundfish") %>% 
+    dplyr::mutate(
+      refpt = case_when(
+        Bmsy.Basis == "B40%" ~ "40",
+        Bmsy.Basis == "Coastwide SPB40%" ~ "40",
+        Bmsy.Basis == "SPB40%" ~ "40",
+        Bmsy.Basis == "SPB40%\n\n" ~ "40",
+        Bmsy.Basis == "SPR40%" ~ "40",
+        Bmsy.Basis == "SB40%" ~ "40",
+        Bmsy.Basis == "SSB40%" ~ "40",
+        Bmsy.Basis ==  "SPR40% as proxy" ~ "40",
+        Bmsy.Basis ==  "B25%" ~ "25",
+        Bmsy.Basis ==  "SPB25%" ~ "25",
+        Bmsy.Basis ==  "SSB25%" ~ "25")) %>% 
+    #dplyr::mutate(B.unf = Bmsy / refpt) %>%
+    
+  group_by(Stock.Name) %>% 
+  select(Stock.Name, Common.Name, Assessment.Year, Estimated.B, B.Unit, B.Basis, Bmsy, 
+         Bmsy.Basis, B.Bmsy, refpt) %>% 
+  filter(!is.na(Bmsy) & length(Bmsy)>5) %>%
+    mutate(Bmsy.corr = case_when(
+      B.Unit == "10^8 eggs" ~ Bmsy*10^8,
+      B.Unit == "billion eggs" ~ Bmsy*10^9,
+       B.Unit == "trillion eggs" ~ Bmsy*10^12,
+       B.Unit == "trillion eggs\n" ~ Bmsy*10^12,
+      B.Unit == "Eggs" ~ Bmsy,
+      B.Unit == "larvae" ~ Bmsy,
+       B.Unit == "million larvae" ~ Bmsy*10^6,
+      B.Unit == "million eggs" ~ Bmsy*10^6,
+      B.Unit == "Million eggs" ~ Bmsy*10^6,
+       B.Unit == "Million Eggs" ~ Bmsy*10^6,
+      B.Unit == "Metric Tons" ~ Bmsy,
+       B.Unit == "mt" ~ Bmsy,
+       B.Unit == "mt\n" ~ Bmsy,
+       B.Unit == "mt (female biomass only)" ~ Bmsy*2,
+      B.Unit == "mt (female mature biomass)" ~ Bmsy*2,
+      B.Unit == "mt (female mature)" ~ Bmsy*2,
+      B.Unit == "Million Metric Tons" ~ Bmsy*10^6,)) %>% 
+  ungroup()
+  
+refsum <- ref2 %>% 
+  group_by(Stock.Name) %>% 
+  summarize(ct = n()) %>% 
+  ungroup() %>% 
+  arrange(-ct)
+print(refsum)
+```
+
+There are a couple of things we could plot to look at productivity/carrying capacity. Here I am choosing Bmsy because unless there is a change in policy about the reference point (e.g., from b40 to b25 for flatfish), it should have a consistent interpretation across the time series (like Bzero).
+
+When I plot all the species, there are some inconsistencies that are coming from changes in the units of biomass for some of the rockfish species, e.g., changing from spawning biomass to eggs to larvae as the measure of spawning output. This might be able to be standardized with a big more digging into the assessments, or at least the Bzero might be able to be backed out.
+
+```{r, echo=FALSE}
+p<-ggplot(ref2) +
+  geom_point(aes(Assessment.Year, Bmsy.corr)) +
+  facet_wrap(~Common.Name, scales = "free_y")
+print(p)
+```
+
+If we just focus on hake, petrale, and sablefish, the plot is a bit cleaner because the units don't change across the time series. At the end of Kristin and Jameal's convo, we decided to move forward with these three for now. Kristin should look into the older values to groundtruth them and/or talk to assessment authors to understand how the assessment model structure may have changed, which could influence our interpretation. For example, we know the hake model has been pretty consistent since 2011, so we might focus just on those more recent years.
+
+```{r, echo=F}
+replot<- ref2 %>% 
+  dplyr::filter(Common.Name %in% c("Pacific hake", "Petrale sole", "Sablefish"))
+
+p<-ggplot(replot) +
+  geom_point(aes(Assessment.Year, Bmsy.corr)) +
+  facet_wrap(~Common.Name, scales = "free_y")
+p
+```
