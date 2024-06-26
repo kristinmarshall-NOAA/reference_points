@@ -101,8 +101,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="explore-the-data" class="level2">
 <h2 class="anchored" data-anchor-id="explore-the-data">Explore the data</h2>
-<p>I filtered the data to just the Groundfish FMP, and did some data wrangling to get the units of biomass to be comparable across the time series, where possible, and filtered to stocks that have at least 5 asssessments over the 17 year period.</p>
-<p>There are 8 stocks that have that level of monitoring.</p>
+<p>I filtered the data to just the Groundfish FMP, and did some data wrangling to get the units of biomass to be comparable across the time series, where possible, and filtered to stocks that have at least 4 asssessments over the 17 year period.</p>
+<p>There are 13 stocks that have that level of monitoring.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>ref <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">'data/Assessment_Summary_data_PFMC.csv'</span>, <span class="at">header=</span>T)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -126,50 +126,60 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Stock.Name) <span class="sc">%&gt;%</span> </span>
 <span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Stock.Name, Common.Name, Assessment.Year, Estimated.B, B.Unit, B.Basis, Bmsy, </span>
 <span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>         Bmsy.Basis, B.Bmsy, refpt) <span class="sc">%&gt;%</span> </span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(Bmsy) <span class="sc">&amp;</span> <span class="fu">length</span>(Bmsy)<span class="sc">&gt;</span><span class="dv">5</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(Bmsy) <span class="sc">&amp;</span> <span class="fu">length</span>(Bmsy)<span class="sc">&gt;</span><span class="dv">3</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Bmsy.corr =</span> <span class="fu">case_when</span>(</span>
 <span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>      B.Unit <span class="sc">==</span> <span class="st">"10^8 eggs"</span> <span class="sc">~</span> Bmsy<span class="sc">*</span><span class="dv">10</span><span class="sc">^</span><span class="dv">8</span>,</span>
 <span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>      B.Unit <span class="sc">==</span> <span class="st">"billion eggs"</span> <span class="sc">~</span> Bmsy<span class="sc">*</span><span class="dv">10</span><span class="sc">^</span><span class="dv">9</span>,</span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>       B.Unit <span class="sc">==</span> <span class="st">"trillion eggs"</span> <span class="sc">~</span> Bmsy<span class="sc">*</span><span class="dv">10</span><span class="sc">^</span><span class="dv">12</span>,</span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>       B.Unit <span class="sc">==</span> <span class="st">"trillion eggs</span><span class="sc">\n</span><span class="st">"</span> <span class="sc">~</span> Bmsy<span class="sc">*</span><span class="dv">10</span><span class="sc">^</span><span class="dv">12</span>,</span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>      B.Unit <span class="sc">==</span> <span class="st">"Eggs"</span> <span class="sc">~</span> Bmsy,</span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>      B.Unit <span class="sc">==</span> <span class="st">"larvae"</span> <span class="sc">~</span> Bmsy,</span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>       B.Unit <span class="sc">==</span> <span class="st">"million larvae"</span> <span class="sc">~</span> Bmsy<span class="sc">*</span><span class="dv">10</span><span class="sc">^</span><span class="dv">6</span>,</span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>      B.Unit <span class="sc">==</span> <span class="st">"million eggs"</span> <span class="sc">~</span> Bmsy<span class="sc">*</span><span class="dv">10</span><span class="sc">^</span><span class="dv">6</span>,</span>
-<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>      B.Unit <span class="sc">==</span> <span class="st">"Million eggs"</span> <span class="sc">~</span> Bmsy<span class="sc">*</span><span class="dv">10</span><span class="sc">^</span><span class="dv">6</span>,</span>
-<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>       B.Unit <span class="sc">==</span> <span class="st">"Million Eggs"</span> <span class="sc">~</span> Bmsy<span class="sc">*</span><span class="dv">10</span><span class="sc">^</span><span class="dv">6</span>,</span>
-<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>      B.Unit <span class="sc">==</span> <span class="st">"Metric Tons"</span> <span class="sc">~</span> Bmsy,</span>
-<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>       B.Unit <span class="sc">==</span> <span class="st">"mt"</span> <span class="sc">~</span> Bmsy,</span>
-<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>       B.Unit <span class="sc">==</span> <span class="st">"mt</span><span class="sc">\n</span><span class="st">"</span> <span class="sc">~</span> Bmsy,</span>
-<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>       B.Unit <span class="sc">==</span> <span class="st">"mt (female biomass only)"</span> <span class="sc">~</span> Bmsy<span class="sc">*</span><span class="dv">2</span>,</span>
-<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>      B.Unit <span class="sc">==</span> <span class="st">"mt (female mature biomass)"</span> <span class="sc">~</span> Bmsy<span class="sc">*</span><span class="dv">2</span>,</span>
-<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>      B.Unit <span class="sc">==</span> <span class="st">"mt (female mature)"</span> <span class="sc">~</span> Bmsy<span class="sc">*</span><span class="dv">2</span>,</span>
-<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>      B.Unit <span class="sc">==</span> <span class="st">"Million Metric Tons"</span> <span class="sc">~</span> Bmsy<span class="sc">*</span><span class="dv">10</span><span class="sc">^</span><span class="dv">6</span>,)) <span class="sc">%&gt;%</span> </span>
-<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span>
-<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>refsum <span class="ot">&lt;-</span> ref2 <span class="sc">%&gt;%</span> </span>
-<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Stock.Name) <span class="sc">%&gt;%</span> </span>
-<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">ct =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span> </span>
-<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="sc">-</span>ct)</span>
-<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(refsum)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>      B.Unit <span class="sc">==</span> <span class="st">"Billion eggs"</span> <span class="sc">~</span> Bmsy<span class="sc">*</span><span class="dv">10</span><span class="sc">^</span><span class="dv">9</span>,</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>       B.Unit <span class="sc">==</span> <span class="st">"trillion eggs"</span> <span class="sc">~</span> Bmsy<span class="sc">*</span><span class="dv">10</span><span class="sc">^</span><span class="dv">12</span>,</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>       B.Unit <span class="sc">==</span> <span class="st">"trillion eggs</span><span class="sc">\n</span><span class="st">"</span> <span class="sc">~</span> Bmsy<span class="sc">*</span><span class="dv">10</span><span class="sc">^</span><span class="dv">12</span>,</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>      B.Unit <span class="sc">==</span> <span class="st">"Eggs"</span> <span class="sc">~</span> Bmsy,</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>      B.Unit <span class="sc">==</span> <span class="st">"larvae"</span> <span class="sc">~</span> Bmsy,</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>       B.Unit <span class="sc">==</span> <span class="st">"million larvae"</span> <span class="sc">~</span> Bmsy<span class="sc">*</span><span class="dv">10</span><span class="sc">^</span><span class="dv">6</span>,</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>      B.Unit <span class="sc">==</span> <span class="st">"million eggs"</span> <span class="sc">~</span> Bmsy<span class="sc">*</span><span class="dv">10</span><span class="sc">^</span><span class="dv">6</span>,</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>      B.Unit <span class="sc">==</span> <span class="st">"Million eggs"</span> <span class="sc">~</span> Bmsy<span class="sc">*</span><span class="dv">10</span><span class="sc">^</span><span class="dv">6</span>,</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>       B.Unit <span class="sc">==</span> <span class="st">"Million Eggs"</span> <span class="sc">~</span> Bmsy<span class="sc">*</span><span class="dv">10</span><span class="sc">^</span><span class="dv">6</span>,</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>      B.Unit <span class="sc">==</span> <span class="st">"Metric Tons"</span> <span class="sc">~</span> Bmsy,</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>       B.Unit <span class="sc">==</span> <span class="st">"mt"</span> <span class="sc">~</span> Bmsy,</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>       B.Unit <span class="sc">==</span> <span class="st">"mt</span><span class="sc">\n</span><span class="st">"</span> <span class="sc">~</span> Bmsy,</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>       B.Unit <span class="sc">==</span> <span class="st">"mt (female biomass only)"</span> <span class="sc">~</span> Bmsy<span class="sc">*</span><span class="dv">2</span>,</span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>      B.Unit <span class="sc">==</span> <span class="st">"mt (female mature biomass)"</span> <span class="sc">~</span> Bmsy<span class="sc">*</span><span class="dv">2</span>,</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>      B.Unit <span class="sc">==</span> <span class="st">"mt (female mature)"</span> <span class="sc">~</span> Bmsy<span class="sc">*</span><span class="dv">2</span>,</span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>      B.Unit <span class="sc">==</span> <span class="st">"Million Metric Tons"</span> <span class="sc">~</span> Bmsy<span class="sc">*</span><span class="dv">10</span><span class="sc">^</span><span class="dv">6</span>,)) <span class="sc">%&gt;%</span> </span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>refsum <span class="ot">&lt;-</span> ref2 <span class="sc">%&gt;%</span> </span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Stock.Name) <span class="sc">%&gt;%</span> </span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">ct =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span> </span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="sc">-</span>ct)</span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(refsum)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 8 × 2
-  Stock.Name                               ct
-  &lt;chr&gt;                                 &lt;int&gt;
-1 Pacific hake - Pacific Coast             15
-2 Darkblotched rockfish - Pacific Coast     9
-3 Canary rockfish - Pacific Coast           8
-4 Bocaccio - Southern Pacific Coast         7
-5 Petrale sole - Pacific Coast              7
-6 Yelloweye rockfish - Pacific Coast        7
-7 Sablefish - Pacific Coast                 6
-8 Widow rockfish - Pacific Coast            6</code></pre>
+<pre><code># A tibble: 13 × 2
+   Stock.Name                                  ct
+   &lt;chr&gt;                                    &lt;int&gt;
+ 1 Pacific hake - Pacific Coast                15
+ 2 Darkblotched rockfish - Pacific Coast        9
+ 3 Canary rockfish - Pacific Coast              8
+ 4 Bocaccio - Southern Pacific Coast            7
+ 5 Petrale sole - Pacific Coast                 7
+ 6 Yelloweye rockfish - Pacific Coast           7
+ 7 Sablefish - Pacific Coast                    6
+ 8 Widow rockfish - Pacific Coast               6
+ 9 Pacific ocean perch - Pacific Coast          5
+10 Arrowtooth flounder - Pacific Coast          4
+11 Blackgill rockfish - Southern California     4
+12 Cowcod - Southern California                 4
+13 Dover sole - Pacific Coast                   4</code></pre>
 </div>
 </div>
 <p>There are a couple of things we could plot to look at productivity/carrying capacity. Here I am choosing Bmsy because unless there is a change in policy about the reference point (e.g., from b40 to b25 for flatfish), it should have a consistent interpretation across the time series (like Bzero).</p>
-<p>When I plot all the species, there are some inconsistencies that are coming from changes in the units of biomass for some of the rockfish species, e.g., changing from spawning biomass to eggs to larvae as the measure of spawning output. This might be able to be standardized with a big more digging into the assessments, or at least the Bzero might be able to be backed out.</p>
+<p>When I plot all the species, there are some inconsistencies that are coming from changes in the units of biomass for some of the rockfish species, e.g., changing from spawning biomass to eggs to larvae as the measure of spawning output. This might be able to be standardized with a bit more digging into the assessments, or at least the Bzero might be able to be backed out…</p>
 <div class="cell">
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 8 rows containing missing values or values outside the scale range
+(`geom_point()`).</code></pre>
+</div>
 <div class="cell-output-display">
 <p><img src="Explore_Bzero_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -180,6 +190,67 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><img src="Explore_Bzero_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
+<p>Here we want to create the HCR plot for Hake, where the x axis will be biomass (not relative to unfished), and the target fishing mortality rate in uncorrected terms.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>r2<span class="ot">&lt;-</span> ref2 <span class="sc">%&gt;%</span> </span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(Common.Name <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Bocaccio"</span>))</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>r2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 7 × 11
+  Stock.Name       Common.Name Assessment.Year Estimated.B B.Unit B.Basis   Bmsy
+  &lt;chr&gt;            &lt;chr&gt;                 &lt;int&gt;       &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    &lt;dbl&gt;
+1 Bocaccio - Sout… Bocaccio               2005     1430    "bill… Female… 5.36e3
+2 Bocaccio - Sout… Bocaccio               2007     1727    "bill… Female… 5.43e3
+3 Bocaccio - Sout… Bocaccio               2009  2209900    "larv… Female… 3.14e6
+4 Bocaccio - Sout… Bocaccio               2011        2.03 "tril… Female… 3.12e0
+5 Bocaccio - Sout… Bocaccio               2013     2551.   "tril… Female… 3.25e3
+6 Bocaccio - Sout… Bocaccio               2015     2607    "mill… Female… 2.84e3
+7 Bocaccio - Sout… Bocaccio               2017     3603    "mill… Female… 2.96e3
+# ℹ 4 more variables: Bmsy.Basis &lt;chr&gt;, B.Bmsy &lt;dbl&gt;, refpt &lt;chr&gt;,
+#   Bmsy.corr &lt;dbl&gt;</code></pre>
+</div>
+</div>
+<p>Bocaccio switches between eggs and larvae for reproductive output</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>r2<span class="ot">&lt;-</span> ref2 <span class="sc">%&gt;%</span> </span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(Common.Name <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Darkblotched rockfish"</span>))</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>r2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 9 × 11
+  Stock.Name       Common.Name Assessment.Year Estimated.B B.Unit B.Basis   Bmsy
+  &lt;chr&gt;            &lt;chr&gt;                 &lt;int&gt;       &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    &lt;dbl&gt;
+1 Darkblotched ro… Darkblotch…            2005     4.45e+4 milli… Female… 1.07e5
+2 Darkblotched ro… Darkblotch…            2007     6.85e+3 10^8 … Female… 1.23e4
+3 Darkblotched ro… Darkblotch…            2009     7.94e-1 trill… Female… 1.15e0
+4 Darkblotched ro… Darkblotch…            2011     8.81e-1 trill… Female… 1.17e0
+5 Darkblotched ro… Darkblotch…            2013     1.21e+3 milli… Female… 1.34e3
+6 Darkblotched ro… Darkblotch…            2015     1.26e+3 milli… Female… 1.28e3
+7 Darkblotched ro… Darkblotch…            2017     1.42e+3 milli… Female… 1.42e3
+8 Darkblotched ro… Darkblotch…            2019     1.56e+9 Eggs   Female… 1.42e9
+9 Darkblotched ro… Darkblotch…            2021     1.76e+9 Eggs   Female… 1.42e9
+# ℹ 4 more variables: Bmsy.Basis &lt;chr&gt;, B.Bmsy &lt;dbl&gt;, refpt &lt;chr&gt;,
+#   Bmsy.corr &lt;dbl&gt;</code></pre>
+</div>
+</div>
+<p>darkblotched seems ok but units are in eggs not mt like hake/sbalefish/petrales</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>r2<span class="ot">&lt;-</span> ref2 <span class="sc">%&gt;%</span> </span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(Common.Name <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Pacific ocean perch"</span>))</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>r2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 5 × 11
+  Stock.Name      Common.Name Assessment.Year Estimated.B B.Unit B.Basis    Bmsy
+  &lt;chr&gt;           &lt;chr&gt;                 &lt;int&gt;       &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;     &lt;dbl&gt;
+1 Pacific ocean … Pacific oc…            2005     8.85e 3 mt     Spawni… 1.51e 4
+2 Pacific ocean … Pacific oc…            2007     1.02e 4 mt     Spawni… 1.48e 4
+3 Pacific ocean … Pacific oc…            2009     1.08e 4 mt     Spawni… 1.51e 4
+4 Pacific ocean … Pacific oc…            2011     1.25e12 eggs   Female… 2.62e12
+5 Pacific ocean … Pacific oc…            2017     5.28e 3 milli… Female… 2.76e 3
+# ℹ 4 more variables: Bmsy.Basis &lt;chr&gt;, B.Bmsy &lt;dbl&gt;, refpt &lt;chr&gt;,
+#   Bmsy.corr &lt;dbl&gt;</code></pre>
+</div>
+</div>
+<p>Need to look up if there are ways to convert eggs to mt biomass - spawning put so we can compare better across species. most of the time series change between one to the other part way through so makes it difficult to know. ask kelli or aaron or kiva.</p>
 </section>
 
 </main>
