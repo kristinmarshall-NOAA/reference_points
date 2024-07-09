@@ -116,6 +116,37 @@ p
 
 
 ```
+The 3-panel plot that's in the paper (doesn't have darkblotched rockfish and the y-axis is on a log-scale) and a table of corresponding values:
+```{r, echo=F}
+replot2<- ref2 %>% 
+  dplyr::filter(Common.Name %in% c("Pacific hake", "Petrale sole", "Sablefish")) %>% 
+  mutate(B.unf = Bmsy.corr / (as.numeric(refpt)/100)) 
+
+p<-ggplot(replot) +
+  geom_line(aes(Assessment.Year, log(B.unf))) +
+  geom_point(aes(Assessment.Year, log(B.unf))) +
+  facet_wrap(~Common.Name) +
+  labs(x = "Year of assessment", y = "Estimate of unfished spawning output")+
+  #coord_trans(y = "log") +
+  theme_pubr(legend="right") + 
+  theme( axis.text.x=element_text(size=10), axis.text.y=element_text(size=10), axis.title = element_text(size = 14), strip.background = element_blank(), strip.text.x = element_text(size = 12) )
+p
+
+```
+
+Here is a summary table of percent change from max to min value of estimated spawning output  
+```{r}
+refsum<- replot2 %>%
+  group_by(Stock.Name) %>% 
+ summarize(B.unf.max=max(B.unf),
+           B.unf.min = min(B.unf),
+           percent.change = (max(B.unf)-min(B.unf))
+            / max(B.unf)) 
+  #dplyr::select(Stock.Name, B.unf.change)
+
+print(refsum)
+
+```
 
 Here we want to create the HCR plot for Hake, where the x axis will be biomass (not relative to unfished), and the target fishing mortality rate in uncorrected terms.
 
