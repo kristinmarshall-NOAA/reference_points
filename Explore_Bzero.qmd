@@ -1,6 +1,6 @@
 ---
 title: "Reference Points from Stock Smart database"
-format: html
+format: pdf
 editor: visual
 ---
 
@@ -116,17 +116,20 @@ p
 
 
 ```
-The 3-panel plot that's in the paper (doesn't have darkblotched rockfish and the y-axis is on a log-scale) and a table of corresponding values:
+
+Here is the exact 3-panel plot that's in the current version of the manucsript (7/9/24).  Note y axis is on a log scale.
+
 ```{r, echo=F}
 replot2<- ref2 %>% 
   dplyr::filter(Common.Name %in% c("Pacific hake", "Petrale sole", "Sablefish")) %>% 
   mutate(B.unf = Bmsy.corr / (as.numeric(refpt)/100)) 
 
-p<-ggplot(replot) +
+
+p<-ggplot(replot2) +
   geom_line(aes(Assessment.Year, log(B.unf))) +
   geom_point(aes(Assessment.Year, log(B.unf))) +
   facet_wrap(~Common.Name) +
-  labs(x = "Year of assessment", y = "Estimate of unfished spawning output")+
+  labs(x = "Year of assessment", y = "log(Estimate of unfished spawning output)")+
   #coord_trans(y = "log") +
   theme_pubr(legend="right") + 
   theme( axis.text.x=element_text(size=10), axis.text.y=element_text(size=10), axis.title = element_text(size = 14), strip.background = element_blank(), strip.text.x = element_text(size = 12) )
@@ -134,8 +137,8 @@ p
 
 ```
 
-Here is a summary table of percent change from max to min value of estimated spawning output  
-```{r}
+Here is a summary table of percent change ((max-min)/max) in estimated spawning output by species over the full time series (not in log-scale) :
+```{r, echo=F}
 refsum<- replot2 %>%
   group_by(Stock.Name) %>% 
  summarize(B.unf.max=max(B.unf),
@@ -148,27 +151,26 @@ print(refsum)
 
 ```
 
-Here we want to create the HCR plot for Hake, where the x axis will be biomass (not relative to unfished), and the target fishing mortality rate in uncorrected terms.
 
-```{r}
+
+```{r, echo=F}
 r2<- ref2 %>% 
   dplyr::filter(Common.Name %in% c("Bocaccio"))
-r2
+#Bocaccio switches between eggs and larvae for reproductive output
 
 ```
-Bocaccio switches between eggs and larvae for reproductive output
-```{r}
+
+```{r, echo=F}
 r2<- ref2 %>% 
   dplyr::filter(Common.Name %in% c("Darkblotched rockfish"))
-r2
-
+#r2
+#darkblotched seems ok but units are in eggs not mt like hake/sbalefish/petrales
 ```
-darkblotched seems ok but units are in eggs not mt like hake/sbalefish/petrales
 
-```{r}
+
+```{r, echo=F}
 r2<- ref2 %>% 
   dplyr::filter(Common.Name %in% c("Pacific ocean perch"))
-r2
-
+#r2
+#Need to look up if there are ways to convert eggs to mt biomass - spawning put so we can compare better across species. most of the time series change between one to the other part way through so makes it difficult to know.  ask kelli or aaron or kiva.
 ```
-Need to look up if there are ways to convert eggs to mt biomass - spawning put so we can compare better across species. most of the time series change between one to the other part way through so makes it difficult to know.  ask kelli or aaron or kiva.
