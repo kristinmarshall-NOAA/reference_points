@@ -151,7 +151,26 @@ print(refsum)
 
 ```
 
+We wanted to add error bars to the plot, but that meant going back to the original assessments and pulling those estimates because they weren't in the stock SMART database, which AB did.  This new data frame has the medians and 95% confidence/credible intervals.
 
+```{r, echo=F}
+bzero_dat <- read.csv('data/assessment_data_AB.csv')
+
+p<-ggplot(bzero_dat) +
+  geom_ribbon(aes(x=year, ymin = lower95, ymax = upper95
+              )) +
+  scale_y_continuous(trans='log10') +
+  geom_line(aes(year, median)) +
+  geom_point(aes(year , median)) +
+  facet_wrap(~species) +
+  labs(x = "Year of assessment", y = "Estimate of unfished spawning output") +
+  #coord_trans(y = "log") +
+  theme_pubr(legend="right") + 
+  theme( axis.text.x=element_text(size=10), axis.text.y=element_text(size=10), axis.title = element_text(size = 14), strip.background = element_blank(), strip.text.x = element_text(size = 12) ) 
+              
+p
+
+```
 
 ```{r, echo=F}
 r2<- ref2 %>% 
@@ -173,4 +192,11 @@ r2<- ref2 %>%
   dplyr::filter(Common.Name %in% c("Pacific ocean perch"))
 #r2
 #Need to look up if there are ways to convert eggs to mt biomass - spawning put so we can compare better across species. most of the time series change between one to the other part way through so makes it difficult to know.  ask kelli or aaron or kiva.
+
+
+
+rep<- ref2 %>% 
+  dplyr::filter(Common.Name %in% c("Petrale sole"))
+
+
 ```
