@@ -117,7 +117,7 @@ p
 
 ```
 
-Here is the exact 3-panel plot that's in the current version of the manucsript (7/9/24).  Note y axis is on a log scale.
+Here is the exact 3-panel plot that's in the current version of the manucsript (7/9/24). Note y axis is on a log scale.
 
 ```{r, echo=F}
 replot2<- ref2 %>% 
@@ -138,6 +138,7 @@ p
 ```
 
 Here is a summary table of percent change ((max-min)/max) in estimated spawning output by species over the full time series (not in log-scale) :
+
 ```{r, echo=F}
 refsum<- replot2 %>%
   group_by(Stock.Name) %>% 
@@ -151,24 +152,50 @@ print(refsum)
 
 ```
 
-We wanted to add error bars to the plot, but that meant going back to the original assessments and pulling those estimates because they weren't in the stock SMART database, which AB did.  This new data frame has the medians and 95% confidence/credible intervals.
+We wanted to add error bars to the plot, but that meant going back to the original assessments and pulling those estimates because they weren't in the stock SMART database, which AB did. This new data frame has the medians and 95% confidence/credible intervals.
 
 ```{r, echo=F}
 bzero_dat <- read.csv('data/assessment_data_AB.csv')
 
+species_names <- c(
+  `hake` = 'Pacific hake',
+  `petrale` = 'Petrale sole',
+  `sablefish` = 'Sablefish'
+)
+
 p<-ggplot(bzero_dat) +
-  geom_ribbon(aes(x=year, ymin = lower95, ymax = upper95
-              )) +
+  geom_ribbon(aes(
+    x=year, ymin = lower95/10^6, ymax = upper95/10^6),
+    alpha = 0.3
+    ) +
   scale_y_continuous(trans='log10') +
-  geom_line(aes(year, median)) +
-  geom_point(aes(year , median)) +
-  facet_wrap(~species) +
-  labs(x = "Year of assessment", y = "Estimate of unfished spawning output") +
+  geom_line(aes(year, median/10^6)) +
+  geom_point(aes(year , median/10^6)) +
+  facet_wrap(~species, labeller = as_labeller(species_names)) +
+  labs(x = "Year of assessment", y = "Estimate of unfished spawning output\n(millions mt)") +
   #coord_trans(y = "log") +
   theme_pubr(legend="right") + 
   theme( axis.text.x=element_text(size=10), axis.text.y=element_text(size=10), axis.title = element_text(size = 14), strip.background = element_blank(), strip.text.x = element_text(size = 12) ) 
               
 p
+
+ggsave(here::here('figures/fig5.png'))
+ggsave(here::here('figures/fig5.pdf'))
+
+```
+
+Quickly calculate the percent difference between the minimum and maximum median/mean unfished spawning output values for each species (not in log-scale) :
+
+```{r, echo=F}
+refsum2<- bzero_dat %>%
+  group_by(species) %>% 
+ summarize(B.unf.max=max(median),
+           B.unf.min = min(median),
+           percent.change = (max(median)-min(median))
+            / max(median)) 
+  #dplyr::select(Stock.Name, B.unf.change)
+
+print(refsum2)
 
 ```
 
@@ -185,7 +212,6 @@ r2<- ref2 %>%
 #r2
 #darkblotched seems ok but units are in eggs not mt like hake/sbalefish/petrales
 ```
-
 
 ```{r, echo=F}
 r2<- ref2 %>% 
