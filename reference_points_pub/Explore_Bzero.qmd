@@ -1,0 +1,64 @@
+---
+title: "Reference Points from 3 West Coast Groundfish Assessments"
+format: pdf
+editor: visual
+---
+
+## U.S. West Coast Groundfish Stock Assessments
+
+We quantified variation in estimated equilibrium unfished spawning biomass (hereafter, unfished biomass) in Pacific Fishery Management Council (PFMC) groundfish stock assessments from the U.S. West Coast. We extracted unfished biomass (or spawning output) from the stock assessments available on the PFMC website (<https://www.pcouncil.org/stock-assessments-star-reports-stat-reports-rebuilding-analyses-terms-of-reference/groundfish-stock-assessment-documents/>) for 2005 to 2022. The unfished biomass values are conceptually similar to the carrying capacity K in the Samhouri et al. course corrections simulations.
+
+We chose stocks to compare and explore based on assessment frequency and continuity in the units of biomass reported. Thirteen groundfish stocks have been assessed four or more times over 2005-2022. For illustrative purposes we focus here on Pacific hake (Merluccius productus), petrale sole (Eopsetta jordani), and sablefish (Anoplopoma fimbria). All three of these stocks report reference points in terms of units of spawning biomass, are highly valuable, and benefit from regular, Congressionally-mandated monitoring surveys and frequent stock assessments.
+
+```{r, echo=FALSE, warning=F, message=F}
+library(tidyverse)
+library(here)
+library(ggpubr)
+
+```
+
+Estimates are from the original assessments. For Pacific hake, the central tendency is a median of the posterior distribution and the errors are the 95% credible intervals. For petrale sole and sablefish, the central tendency is the mean point estimate and the errors are the 95% asymptotic confidence intervals. We note that the assessment model structure may have changed over time, which could influence interpretation. For example, we know the hake model has been pretty consistent since 2011, so we might focus just on those more recent years.
+
+```{r, echo=F}
+bzero_dat <- read.csv('data/assessment_data_AB.csv')
+
+species_names <- c(
+  `hake` = 'Pacific hake',
+  `petrale` = 'Petrale sole',
+  `sablefish` = 'Sablefish'
+)
+
+p<-ggplot(bzero_dat) +
+  geom_ribbon(aes(
+    x=year, ymin = lower95/10^6, ymax = upper95/10^6),
+    alpha = 0.3
+    ) +
+  scale_y_continuous(trans='log10') +
+  geom_line(aes(year, median/10^6)) +
+  geom_point(aes(year , median/10^6)) +
+  facet_wrap(~species, labeller = as_labeller(species_names)) +
+  labs(x = "Year of assessment", y = "Estimate of unfished spawning output\n(millions mt)") +
+  #coord_trans(y = "log") +
+  theme_pubr(legend="right") + 
+  theme( axis.text.x=element_text(size=10), axis.text.y=element_text(size=10), axis.title = element_text(size = 14), strip.background = element_blank(), strip.text.x = element_text(size = 12) ) 
+              
+p
+
+ggsave(here::here('figures/fig5.png'))
+ggsave(here::here('figures/fig5.pdf'))
+
+```
+
+Quickly calculate the percent difference between the minimum and maximum median/mean unfished spawning output values for each species (not in log-scale) :
+
+```{r, echo=F}
+refsum2<- bzero_dat %>%
+  group_by(species) %>% 
+ summarize(B.unf.max=max(median),
+           B.unf.min = min(median),
+           percent.change = (max(median)-min(median))
+            / max(median)) 
+  #dplyr::select(Stock.Name, B.unf.change)
+
+print(refsum2)
+```
